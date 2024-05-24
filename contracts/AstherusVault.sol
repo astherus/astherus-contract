@@ -28,11 +28,9 @@ contract AstherusVault is Initializable, PausableUpgradeable, AccessControlEnume
     event WithdrawPaused(address indexed trigger, address indexed currency, uint256 amount, uint256 amountUsd);
     event Withdraw(uint256 indexed id, address indexed to, address indexed currency, bool isNative, uint256 amount);
     event NewSigner(address oldSigner, address newSigner);
-    event NewCounterParty(address oldCounterParty, address newCounterParty);
     event UpdateHourlyLimit(uint256 oldHourlyLimit, uint256 newHourlyLimit);
     event AddToken(address indexed currency, address indexed priceFeed, bool fixedPrice);
     event RemoveToken(address indexed currency);
-    event TransferToCounterParty(address indexed currency, bool isNative, uint256 amount);
 
     error ZeroAddress();
     error ZeroAmount();
@@ -47,7 +45,6 @@ contract AstherusVault is Initializable, PausableUpgradeable, AccessControlEnume
     }
 
     address public signer;
-    address payable public counterParty;
     uint256 public hourlyLimit;
     mapping(address => Token) public supportToken;
     // id => block.number
@@ -130,11 +127,6 @@ contract AstherusVault is Initializable, PausableUpgradeable, AccessControlEnume
         if (currency == address(0)) revert ZeroAddress();
         delete supportToken[currency];
         emit RemoveToken(currency);
-    }
-
-    function transferToCounterParty(bool isNative, address currency, uint256 amount) external onlyRole(ADMIN_ROLE) {
-        _transfer(counterParty, isNative, currency, amount);
-        emit TransferToCounterParty(currency, isNative, amount);
     }
 
     function _transfer(address payable to, bool isNative, address currency, uint256 amount) private {
